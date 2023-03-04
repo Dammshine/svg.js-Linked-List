@@ -1,0 +1,25 @@
+{
+  "name": "svg.js-linked-list",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dammshine/svg.js-Linked-List.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dammshine/svg.js-Linked-List/issues"
+  },
+  "homepage": "https://github.com/Dammshine/svg.js-Linked-List#readme",
+  "dependencies": {
+    "@svgdotjs/svg.js": "^3.1.2",
+    "snapsvg": "^0.5.1"
+  },
+  "type": "module"
+}
