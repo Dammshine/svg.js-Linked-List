@@ -1,3 +1,5 @@
+import { fetchBackendData } from "./SVG/backend/data.js";
+
 // Get a reference to the SVG container element
 var svgContainer = SVG().addTo("#svg-container");
 
@@ -6,13 +8,11 @@ svgContainer.size(1000, 500);
 var nodes;
 var cursor = null;
 var cursorText = null;
+
 // ------------------------------------------------------
 // Linked List from backend
 // ------------------------------------------------------
-var backendData = {
-  nodes: [10, 20, 30, 40, 50, 60],
-  currNode: 10,
-}
+let backendData = fetchBackendData();
 
 // Add the node, later we can read a json file and parse
 var parseLinkedList = (linkedList, currNode) => {
@@ -29,7 +29,6 @@ var parseLinkedList = (linkedList, currNode) => {
   return nodesList;
 };
 nodes = parseLinkedList(backendData.nodes, backendData.currNode);
-console.log(nodes);
 
 // Create a group to hold the nodes
 var nodeGroup = svgContainer.group();
@@ -103,7 +102,7 @@ let render = () => {
 }
 
 // Now we want to simulate
-checkNextElement = async () => {
+let checkNextElement = async () => {
   // Remove cursor, cursorText
   animateCursor(cursor);
   animateText(cursorText);
@@ -137,3 +136,13 @@ async function animateText(element) {
 
 render();
 createCursor(nodes);
+
+
+// ------------------------------------------------------
+// Link button with click event
+// ------------------------------------------------------
+let linkButton = document.getElementById("next-element");
+linkButton.addEventListener("click", async () => {
+  checkNextElement();
+  render();
+});
