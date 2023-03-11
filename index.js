@@ -4,7 +4,7 @@ import { fetchBackendData } from "./SVG/backend/data.js";
 var svgContainer = SVG().addTo("#svg-container");
 
 // Set the size of the SVG container
-svgContainer.size(1000, 800);
+svgContainer.size(1500, 800);
 var nodes;
 var cursor = null;
 var cursorText = null;
@@ -105,6 +105,10 @@ function render() {
   createNode(nodes);
   createNodeArrow(nodes);
 }
+function renderNew(data) {
+  createNode(data);
+  createNodeArrow(data);
+}
 
 // Now we want to simulate
 let checkNextElement = async () => {
@@ -170,13 +174,14 @@ function simulateNewData(originalData, newData) {
       diff++;
     }
   }
+  renderNew(newData);
 }
 
 // ------------------------------------------------------
 // Link button with click event
 // ------------------------------------------------------
-let linkButton = document.getElementById("next-element");
-linkButton.addEventListener("click", () => {
+let nextButton = document.getElementById("next-element");
+nextButton.addEventListener("click", () => {
   for (var i = 0; i < nodes.length; i++) {
     if (nodes[i].cursorPoints) {
       if (i < nodes.length - 1) {
@@ -189,4 +194,28 @@ linkButton.addEventListener("click", () => {
 
   simulateNewData(states[states.length - 1], nodes);
   states.push(JSON.parse(JSON.stringify(nodes)));
+});
+
+let addButton = document.getElementById("add-element");
+addButton.addEventListener("click", () => {
+  let value = Math.floor(Math.random() * 100);
+  let newNode = {
+    x: nodes[nodes.length - 1].x + 100,
+    y: 100,
+    value: value,
+    cursorPoints: false
+  };
+  nodes.push(newNode);
+
+  simulateNewData(states[states.length - 1], nodes);
+  states.push(JSON.parse(JSON.stringify(nodes)));
+});
+
+let revertButton = document.getElementById("revert");
+revertButton.addEventListener("click", () => {
+  states.pop();
+  let revertState = states[states.length - 1];
+  console.log(nodes, revertState);
+  simulateNewData(nodes, revertState);
+  nodes = JSON.parse(JSON.stringify(revertState));
 });
