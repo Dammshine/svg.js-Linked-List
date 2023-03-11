@@ -4,7 +4,7 @@ import { fetchBackendData } from "./SVG/backend/data.js";
 var svgContainer = SVG().addTo("#svg-container");
 
 // Set the size of the SVG container
-svgContainer.size(1000, 500);
+svgContainer.size(1000, 800);
 var nodes;
 var cursor = null;
 var cursorText = null;
@@ -20,7 +20,7 @@ var parseLinkedList = (linkedList, currNode) => {
   for (var i = 0; i < linkedList.length; i++) {
     let node = {
       x: nodesList.length > 0 ? nodesList[nodesList.length - 1].x + 100 : 50,
-      y: 50,
+      y: 100,
       value: linkedList[i],
       cursorPoints: linkedList[i] === currNode
     };
@@ -29,6 +29,9 @@ var parseLinkedList = (linkedList, currNode) => {
   return nodesList;
 };
 nodes = parseLinkedList(backendData.nodes, backendData.currNode);
+
+var states = [];
+states.push(JSON.parse(JSON.stringify(nodes)));
 
 // Create a group to hold the nodes
 var nodeGroup = svgContainer.group();
@@ -43,13 +46,13 @@ let createNode = (nodes) => {
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
     var color = node.cursorPoints ? "green" : "black";
-    var circle = nodeGroup
+    nodeGroup
       .circle(50)
       .move(node.x, node.y)
       .fill("white")
       .stroke({ color, width: 4 });
     // Add a text element to the rectangle
-    var text = nodeGroup.text(node.value).move(node.x + 15, node.y + 15);
+    nodeGroup.text(node.value).move(node.x + 15, node.y + 15);
   }
 };
 
@@ -96,7 +99,9 @@ let createCursor = (nodes) => {
   }
 };
 
-let render = () => {
+
+// Re-render
+function render() {
   createNode(nodes);
   createNodeArrow(nodes);
 }
@@ -104,45 +109,84 @@ let render = () => {
 // Now we want to simulate
 let checkNextElement = async () => {
   // Remove cursor, cursorText
-  animateCursor(cursor);
-  animateText(cursorText);
-  // console.log(cursor);
-  for (var i = 0; i < nodes.length; i++) {
-    var node = nodes[i];
-    if (node.cursorPoints) {
-      if (i < nodes.length - 1) {
-        node.cursorPoints = false;
-        nodes[i + 1].cursorPoints = true;
-      }
-      break;
-    }
-  }
+  animateCursorForward(cursor);
+  animateTextForward(cursorText);
   render();
-  // console.log(nodes);
 };
 
-async function animateCursor(element) {
-  element.animate(500).dmove(0, 20).after(function() {
-    element.animate(500).dmove(-100, -20).after(animateCursor);
-  });
+let checkLastElement = async () => {
+  // Remove cursor, cursorText
+  animateCursorBackward(cursor);
+  animateTextBackward(cursorText);
+  render();
+};
+
+function animateCursorForward(element) {
+  element.animate().dmove(0, 20).animate().dmove(-100, -20);
 }
 
-async function animateText(element) {
-  element.animate(500).dmove(0, 20).after(function() {
-    element.animate(500).dmove(100, -20).after(animateCursor);
-  });
+function animateTextForward(element) {
+  element.animate().dmove(0, 20).animate().dmove(100, -20);
+}
+
+function animateCursorBackward(element) {
+  element.animate().dmove(0, 20).animate().dmove(100, -20);
+}
+
+function animateTextBackward(element) {
+  element.animate().dmove(0, 20).animate().dmove(-100, -20);
 }
 
 
 render();
 createCursor(nodes);
 
+function simulateNewData(originalData, newData) {
+  // Find the difference for pointer
+  function getPointerPos(data) {
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].cursorPoints === true) {
+        return i;
+      }
+    }
+    throw new Error("Pointer not found");
+  }
+  
+  let originalPos = getPointerPos(originalData);
+  let newDataPos = getPointerPos(newData);
+  let diff = newDataPos - originalPos;
+
+  // Move the pointer
+  if (diff > 0) {
+    while (diff > 0) {
+      checkNextElement();
+      render();
+      diff--;
+    }
+  } else {
+    while (diff < 0) {
+      checkLastElement();
+      render();
+      diff++;
+    }
+  }
+}
 
 // ------------------------------------------------------
 // Link button with click event
 // ------------------------------------------------------
 let linkButton = document.getElementById("next-element");
-linkButton.addEventListener("click", async () => {
-  checkNextElement();
-  render();
+linkButton.addEventListener("click", () => {
+  for (var i = 0; i < nodes.length; i++) {
+    if (nodes[i].cursorPoints) {
+      if (i < nodes.length - 1) {
+        nodes[i].cursorPoints = false;
+        nodes[i + 1].cursorPoints = true;
+      }
+      break;
+    }
+  }
+
+  simulateNewData(states[states.length - 1], nodes);
+  states.push(JSON.parse(JSON.stringify(nodes)));
 });
